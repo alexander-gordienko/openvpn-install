@@ -1051,7 +1051,7 @@ verb 3" >>/etc/openvpn/client-template.txt
 	fi
 
 	# Generate the custom client.ovpn
-	newClient
+	newClients
 	echo "If you want to add more clients, you simply need to run this script another time!"
 }
 
@@ -1151,7 +1151,6 @@ function newClient() {
 	echo "The configuration file has been written to $homeDir/$CLIENT.ovpn."
 	echo "Download the .ovpn file and import it in your OpenVPN client."
 
-	exit 0
 }
 
 function revokeClient() {
@@ -1317,7 +1316,7 @@ function manageMenu() {
 
 	case $MENU_OPTION in
 	1)
-		newClient
+		newClients
 		;;
 	2)
 		revokeClient
@@ -1331,11 +1330,35 @@ function manageMenu() {
 	esac
 }
 
+function newClients() {
+	echo ""
+	echo "Do you want to protect the configuration file with a password?"
+	echo "(e.g. encrypt the private key with a password)"
+	echo "   1) Add a passwordless client"
+	echo "   2) Use a password for the client"
+
+	until [[ $PASS =~ ^[1-2]$ ]]; do
+		read -rp "Select an option [1-2]: " -e -i 1 PASS
+	done
+
+	CLIENTS=${CLIENTS:-$CLIENT}
+	for CLIENT in $CLIENTS ; do
+		newClient
+	done
+}
+
+# Check for root, TUN, OS...
+initialCheck
+
 # Check for root, TUN, OS...
 initialCheck
 
 # Check if OpenVPN is already installed
-if [[ -e /etc/openvpn/server.conf && $AUTO_INSTALL != "y" ]]; then
+if [[ -e /etc/openvpn/server.conf && -n $CLIENT ]]; then
+	newClient
+elif [[ -e /etc/openvpn/server.conf && -n $CLIENTS ]]; then
+	newClients
+elif [[ -e /etc/openvpn/server.conf && $AUTO_INSTALL != "y" ]]; then
 	manageMenu
 else
 	installOpenVPN
