@@ -1316,7 +1316,7 @@ function manageMenu() {
 
 	case $MENU_OPTION in
 	1)
-		newClients
+		newClient
 		;;
 	2)
 		revokeClient
